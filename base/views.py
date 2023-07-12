@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Room
+from .forms import RoomForm
 # Create your views here.
 """
 rooms = [
@@ -22,6 +23,11 @@ def room(request, pk):
     return render(request, 'base/room.html', content)
 
 def create_room(request):
-    
-    context = {}
+
+    form = RoomForm()
+
+    if request.method == 'POST':
+        print(request.POST)
+
+    context = {'form': form}
     return render(request, 'base/room_form.html', context)
