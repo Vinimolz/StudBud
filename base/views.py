@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse
 from .models import Room, Topic
 from .forms import RoomForm
@@ -17,8 +19,13 @@ rooms = [
 
 def login_page(request):
 
+    page_name = 'login'
+
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username').lower()
         password = request.POST.get('password')
 
         try:
@@ -34,12 +41,38 @@ def login_page(request):
         else:
             messages.error(request, 'Username or password does not exist')
     
-    context = {}
+    context = {'page_name': page_name}
     return render(request, 'base/login_register.html', context)
 
 def logout_user(request):
     logout(request)
     return redirect('home')
+
+def register_user(request):
+    page_name = 'register'
+
+    form = UserCreationForm()    
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        try:
+            if form.is_valid:
+                user = form.save(commit=False)
+                user.username = user.username.lower()
+                user.save()
+                login(request, user)
+                return redirect('home')        
+            else:
+                print('ERROR MESSAGE HERE -------------------')
+                messages.error(request, 'An error has occurred during registration')
+        except Exception as e:
+            messages.error(request, 'An error has occurred during registration')
+            print(f'Error occured in registration. ERROR: {str(e)}')
+
+    context = {'page_name': page_name, 'form': form}
+
+    return render(request, 'base/login_register.html', context)
+
 
 
 def home(request):
@@ -65,6 +98,7 @@ def room(request, pk):
     content = {'room': room}
     return render(request, 'base/room.html', content)
 
+@login_required(login_url='login')
 def create_room(request):
 
     form = RoomForm()
@@ -78,6 +112,7 @@ def create_room(request):
     context = {'form': form}
     return render(request, 'base/room_form.html', context)
 
+@login_required(login_url='login')
 def update_room(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
@@ -91,6 +126,7 @@ def update_room(request, pk):
     context = {'form': form}
     return render(request, 'base/room_form.html', context)
 
+@login_required(login_url='login')
 def delete_room(request, pk):
     room = Room.objects.get(id=pk)
     if request.method == 'POST':
