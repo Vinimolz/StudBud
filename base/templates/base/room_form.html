@@ -14,20 +14,44 @@
                 </path>
               </svg>
             </a>
-            <h3>Create/update Study Room</h3>
+            {% if room.topic.name %}
+            <h3>Update Study Room</h3>
+            {% else %}
+            <h3>Create Study Room</h3>
+            {% endif %}
           </div>
         </div>
         <div class="layout__body">
           <form class="form" action="" method="POST">
             {% csrf_token %}
 
-            {% for field in form %}
             <div class="form__group">
-              <label for="room_name">{{field.label}}</label>
-              {{field}}
+              <label for="room_topic">Room topic:</label>
+              <input required type="text" value="{{room.topic.name}}"  name="topic" list="topic-list">
+              <datalist id="topic-list">
+                <select name="" id="room-topic">
+                  {% for topic in topics %}
+                  <option value="{{topic.name}}">{{topic.name}}</option>
+                  {% endfor %}
+                </select>
+              </datalist>
+
               <!--<input id="room_name" name="room_name" type="text" placeholder="E.g. Mastering Python + Django" /> -->
             </div>
-            {% endfor %}
+
+            <div class="form__group">
+              <label for="room_name">Room name:</label>
+              {{form.name}}
+              <!--<input id="room_name" name="room_name" type="text" placeholder="E.g. Mastering Python + Django" /> -->
+            </div>
+
+            <div class="form__group">
+              <label for="room_description">Room description:</label>
+              {{form.description}}
+              <!--<input id="room_name" name="room_name" type="text" placeholder="E.g. Mastering Python + Django" /> -->
+            </div>
+
+
             <!--
             <div class="form__group">
               <label for="room_topic">Topic</label>
@@ -44,8 +68,12 @@
             -->
 
             <div class="form__action">
-              <a class="btn btn--dark" href="index.html">Cancel</a>
-              <button class="btn btn--main" type="submit">Create Room</button>
+              <a class="btn btn--dark" href="{% url 'home' %}">Cancel</a>
+              {% if room.topic.name %}
+              <button class="btn btn--main" type="submit">Update</button>
+              {% else %}
+              <button class="btn btn--main" type="submit">Create</button>
+              {% endif %}
             </div>
           </form>
         </div>
